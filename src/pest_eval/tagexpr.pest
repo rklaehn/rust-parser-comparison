@@ -1,0 +1,32 @@
+// js style string
+string = ${ "\"" ~ inner ~ "\"" }
+inner = @{ char* }
+char = {
+    !("\"" | "\\") ~ ANY
+    | "\\" ~ ("\"" | "\\" | "/" | "b" | "f" | "n" | "r" | "t")
+    | "\\" ~ ("u" ~ ASCII_HEX_DIGIT{4})
+}
+// date - to be specified
+date = _{ isodate }
+from = { "from" ~ "(" ~ date ~ ")" }
+until = { "until" ~ "(" ~ date ~ ")" }
+atom = _{ string | from | until | "allEvents" }
+// operators with precedence
+and = { term ~ ("&" ~ term)* }
+or = { and ~ ("|" ~ and)* }
+term = _{ atom | "(" ~ or ~ ")" }
+tagexpr = _{ SOI ~ or ~ EOI }
+WHITESPACE = _{ " " | "\t" | "\r" | "\n" }
+block_comment = _{ "/*" ~ (block_comment | !"*/" ~ ANY)* ~ "*/" }
+
+year = { DECIMAL_NUMBER{4} }
+month = { ( "0" ~ '1'..'9' ) | ("1" ~ '1'..'2') }
+day = { ( "0" ~ '1'..'9' ) | ( "1" ~ '0'..'9' ) | ( "2" ~ '0'..'9' ) | "30" | "31" }
+hour = { ( '0'..'1' ~ '0'..'9' ) | ( "2" ~ '0' .. '3' ) }
+minute = { ( '0'..'5' ~ '0'..'9' ) }
+second = { ( '0'..'5' ~ '0'..'9' ) }
+millisecond = { ( '0'..'9'{3} ) }
+isodate = ${ year ~ "-" ~ month ~ "-" ~ day ~ ("T" ~ hour ~ ":" ~ minute ~ (":" ~ second ~ ("." ~ millisecond)?)? ~ "Z")? }
+
+newline = { "\n" | "\r\n" }
+COMMENT    = _{ block_comment | ("//" ~ (!newline ~ ANY)*) }
